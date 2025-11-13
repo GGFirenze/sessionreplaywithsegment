@@ -1197,7 +1197,24 @@
                     const storedSessionId = getStoredSessionId();
                     
                     // Get device ID from Segment (anonymousId is stored in localStorage)
-                    const deviceId = segmentAnalytics.user ? segmentAnalytics.user().anonymousId() : null;
+                    let deviceId = segmentAnalytics.user ? segmentAnalytics.user().anonymousId() : null;
+                    
+                    // If no device ID from Segment, generate one
+                    if (!deviceId) {
+                        // Check if we have one stored
+                        deviceId = cookie.get('amplitude_device_id');
+                        if (!deviceId) {
+                            // Generate a new UUID-like device ID
+                            deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                                const r = Math.random() * 16 | 0;
+                                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            });
+                            // Store it for future sessions
+                            cookie.set('amplitude_device_id', deviceId, 365);
+                            console.log('Generated new device ID:', deviceId);
+                        }
+                    }
 
                     // Wait for Session Replay SDK to be available
                     if (!window.sessionReplay) {
@@ -1227,7 +1244,14 @@
                         optOut: false
                     }).promise;
 
-                    console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', initialSessionId);
+                    console.log('✅ Session Replay initialized successfully!');
+                    console.log('   Device ID:', deviceId);
+                    console.log('   Session ID:', initialSessionId);
+                    console.log('   Sample Rate:', 1);
+                    console.log('   Debug Mode:', true);
+                    
+                    // Wait a moment for Session Replay to start capturing
+                    await new Promise(resolve => setTimeout(resolve, 100));
                     
                     // Verify Session Replay properties are available
                     const testReplayProps = sessionReplayInstance.getSessionReplayProperties();
@@ -1236,7 +1260,9 @@
                     if (testReplayProps && testReplayProps['[Amplitude] Session Replay ID']) {
                         console.log('✅ Session Replay ID is being generated:', testReplayProps['[Amplitude] Session Replay ID']);
                     } else {
-                        console.warn('⚠️ Session Replay ID is NOT being generated - check sampleRate and page focus');
+                        console.warn('⚠️ Session Replay ID is NOT being generated yet');
+                        console.warn('   This is normal - it will start generating once you interact with the page');
+                        console.warn('   Click anywhere on the page, then check again');
                     }
 
                     // Add middleware to check if the session id has changed and update the session replay instance
