@@ -1221,7 +1221,10 @@
                         sessionId: initialSessionId,
                         deviceId: deviceId,
                         sampleRate: 1, // Capture 100% of sessions for testing
-                        debugMode: true // Enable debug mode for troubleshooting
+                        debugMode: true, // Enable debug mode for troubleshooting
+                        // Disable page focus requirement for testing with DevTools
+                        // Remove this in production!
+                        optOut: false
                     }).promise;
 
                     console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', initialSessionId);
