@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pleo - Smart spend management you can trust</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💳</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+            background: #ffffff;
+        }
+
+        /* Cookie Consent Banner */
+        #cookie-consent-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.98);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 24px;
+            z-index: 10000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .cookie-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .cookie-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .cookie-text h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .cookie-text p {
+            font-size: 14px;
+            color: #d4d4d4;
+            line-height: 1.5;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .cookie-btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cookie-accept {
+            background: #ff5d9e;
+            color: white;
+        }
+
+        .cookie-accept:hover {
+            background: #ff4a8d;
+            transform: translateY(-1px);
+        }
+
+        .cookie-decline {
+            background: transparent;
+            color: white;
+            border: 2px solid #555;
+        }
+
+        .cookie-decline:hover {
+            border-color: #888;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 20px 40px;
+            border-bottom: 1px solid #e5e5e5;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #1a1a1a;
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #ff5d9e;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #1a1a1a;
+            border: 2px solid #e5e5e5;
+        }
+
+        .btn-secondary:hover {
+            border-color: #1a1a1a;
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 40px 60px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        /* Spending Guidelines Image Section */
+        .spending-image-section {
+            max-width: 1400px;
+            margin: 60px auto;
+            padding: 0 40px;
+        }
+
+        .spending-image {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .spending-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: #fafafa;
+            padding: 80px 40px;
+        }
+
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-section h2 {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 60px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 48px 40px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+
+        .stat-description {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .customer-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            opacity: 0.6;
+            margin-top: 40px;
+        }
+
+        .customer-logo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Integrations Section */
+        .integrations-section {
+            padding: 80px 40px;
+            background: white;
+        }
+
+        .integrations-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .integrations-content h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .integrations-content p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 32px;
+        }
+
+        .integration-logos {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .integration-logo {
+            background: #fafafa;
+            padding: 32px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            min-height: 100px;
+        }
+
+        /* Tabbed Features Section */
+        .features-section {
+            background: #fafafa;
+            padding: 80px 40px;
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .features-header h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+
+        .tab-btn {
+            padding: 16px 32px;
+            border: none;
+            background: white;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .tab-btn:not(.active):hover {
+            background: #e5e5e5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .tab-header h2 {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .tab-header p {
+            font-size: 20px;
+            color: #666;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .feature-visual {
+            background: #fafafa;
+            padding: 32px;
+            border-radius: 12px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #ffd4e5 0%, #ffc9e0 100%);
+            padding: 100px 40px;
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-container h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .cta-container p {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        /* Footer */
+        footer {
+            background: #f5f5f5;
+            padding: 60px 40px 40px;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 48px;
+            margin-bottom: 40px;
+        }
+
+        .footer-column h4 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 12px;
+        }
+
+        .footer-column ul li a {
+            color: #666;
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .footer-column ul li a:hover {
+            color: #1a1a1a;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid #e5e5e5;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero p {
+                font-size: 18px;
+            }
+
+            .integrations-container {
+                grid-template-columns: 1fr;
+            }
+
+            .integration-logos {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cookie-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent-banner" style="display: none;">
+        <div class="cookie-content">
+            <div class="cookie-text">
+                <h3>🍪 We value your privacy</h3>
+                <p>We use cookies and analytics to improve your experience on our site. We use Segment and Amplitude to understand how you interact with our website. By clicking "Accept", you consent to our use of cookies and analytics.</p>
+            </div>
+            <div class="cookie-buttons">
+                <button class="cookie-btn cookie-decline" id="decline-cookies">Decline</button>
+                <button class="cookie-btn cookie-accept" id="accept-cookies">Accept All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="#" class="logo">PLEO</a>
+            <ul class="nav-links">
+                <li><a href="#products">Products</a></li>
+                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#resources">Resources</a></li>
+                <li><a href="#partners">Partners</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <div class="nav-right">
+                <a href="#" class="btn btn-secondary" id="explore-product-btn">Explore product</a>
+                <a href="#" class="btn btn-secondary" id="login-btn">Log in</a>
+                <a href="#" class="btn btn-secondary" id="contact-sales-btn">Contact sales</a>
+                <a href="#" class="btn btn-primary" id="get-started-header-btn">Get started</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Smart spend management you can trust.</h1>
+        <p>Automate your spend and take full control of your finances with a tool employees will love, no matter the size of your business.</p>
+        <div class="hero-buttons">
+            <a href="#" class="btn btn-primary" id="get-started-hero-btn">Get started</a>
+            <a href="#" class="btn btn-secondary" id="contact-sales-hero-btn">Contact sales</a>
+        </div>
+    </section>
+
+    <!-- Spending Guidelines Image Section -->
+    <section class="spending-image-section">
+        <div class="spending-image">
+            <svg width="100%" height="600" viewBox="0 0 1200 600">
+                <!-- Background gradient -->
+                <defs>
+                    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1a5f5f;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2d8585;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="1200" height="600" fill="url(#bgGrad)"/>
+                
+                <!-- Decorative elements -->
+                <circle cx="200" cy="450" r="80" fill="#e6b3cc" opacity="0.6"/>
+                <rect x="100" y="300" width="120" height="180" rx="10" fill="#f0c0d8" opacity="0.7"/>
+                
+                <!-- Spending Guidelines Card -->
+                <rect x="500" y="200" width="400" height="300" rx="16" fill="white"/>
+                <text x="550" y="250" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="#1a1a1a">Spending Guidelines</text>
+                
+                <!-- Marketing -->
+                <circle cx="530" cy="295" r="8" fill="#a78bfa"/>
+                <text x="550" y="300" font-family="Arial, sans-serif" font-size="16" fill="#333">Marketing</text>
+                <text x="850" y="300" font-family="Arial, sans-serif" font-size="16" fill="#999">→</text>
+                
+                <!-- Office -->
+                <circle cx="530" cy="335" r="8" fill="#60a5fa"/>
+                <text x="550" y="340" font-family="Arial, sans-serif" font-size="16" fill="#333">Office</text>
+                <text x="850" y="340" font-family="Arial, sans-serif" font-size="16" fill="#999">→</text>
+                
+                <!-- Meals and drinks -->
+                <circle cx="530" cy="375" r="8" fill="#34d399"/>
+                <text x="550" y="380" font-family="Arial, sans-serif" font-size="16" fill="#333">Meals and drinks</text>
+                <text x="850" y="380" font-family="Arial, sans-serif" font-size="16" fill="#999">→</text>
+                
+                <!-- Travel -->
+                <circle cx="530" cy="415" r="8" fill="#f87171"/>
+                <text x="550" y="420" font-family="Arial, sans-serif" font-size="16" fill="#333">Travel</text>
+                <text x="850" y="420" font-family="Arial, sans-serif" font-size="16" fill="#999">→</text>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <h2>Trusted by 40,000+ customers</h2>
+            
+            <div class="customer-logos">
+                <div class="customer-logo">HELLO FRESH</div>
+                <div class="customer-logo">LYST</div>
+                <div class="customer-logo">UNITY</div>
+                <div class="customer-logo">THE OCEAN CLEANUP</div>
+                <div class="customer-logo">TRADE REPUBLIC</div>
+                <div class="customer-logo">SOHO HOUSE</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">99%</div>
+                    <div class="stat-description">of users feel secure using Pleo</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">138</div>
+                    <div class="stat-description">hours saved by admins every year</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">75%</div>
+                    <div class="stat-description">say using Pleo has made their company more productive</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integrations Section -->
+    <section class="integrations-section">
+        <div class="integrations-container">
+            <div class="integrations-content">
+                <h2>Seamlessly integrate to the rest of your business</h2>
+                <p>Connect the tools you use and love to Pleo.</p>
+                <a href="#" class="btn btn-secondary" id="learn-more-integrations-btn">Learn more</a>
+            </div>
+            <div class="integration-logos">
+                <div class="integration-logo">QuickBooks</div>
+                <div class="integration-logo">Xero</div>
+                <div class="integration-logo">Oracle NetSuite</div>
+                <div class="integration-logo">Dynamics 365</div>
+                <div class="integration-logo">Zapier</div>
+                <div class="integration-logo">Gmail</div>
+                <div class="integration-logo">Sage</div>
+                <div class="integration-logo">TravelPerk</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabbed Features Section -->
+    <section class="features-section">
+        <div class="features-container">
+            <div class="features-header">
+                <h3>All business spend in one place</h3>
+                <div class="feature-tabs">
+                    <button class="tab-btn active" data-tab="pay">Pay</button>
+                    <button class="tab-btn" data-tab="manage">Manage</button>
+                    <button class="tab-btn" data-tab="optimise">Optimise</button>
+                </div>
+            </div>
+
+            <!-- Pay Tab -->
+            <div class="tab-content active" id="pay-tab">
+                <div class="tab-header">
+                    <h2>Pay</h2>
+                    <p>Teams spend with cards, reimbursements, or invoices. Pleo keeps it flexible and compliant.</p>
+                </div>
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <h3>Smart company cards</h3>
+                        <p>Pleo's various types of cards mean safer spending, for every team.</p>
+                        <div class="feature-visual">💳 Virtual & Physical Cards</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Accounts Payable</h3>
+                        <p>Automate everything, from purchase orders to payments, for fast processing and full control.</p>
+                        <div class="feature-visual">📊 Automated Invoicing</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Reimbursements</h3>
+                        <p>Track, review and manage reimbursements, all in one place.</p>
+                        <div class="feature-visual">💰 Easy Reimbursement</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Tab -->
+            <div class="tab-content" id="manage-tab">
+                <div class="tab-header">
+                    <h2>Manage</h2>
+                    <p>Centralise and automate all business spend, giving finance full visibility and control, with less manual work.</p>
+                </div>
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <h3>Spend controls</h3>
+                        <p>Take control of company spending with custom spending limits, multi-step approvals, budgets and more.</p>
+                        <div class="feature-visual">🎯 Budget Management</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Accounting automation</h3>
+                        <p>Automate everything from expenses and receipts to VAT and reconciliation. Save hours for your team and report with confidence.</p>
+                        <div class="feature-visual">🔄 Auto-sync</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Multi-entity</h3>
+                        <p>One solution, one account, for every expense in every entity. Let no spend go unnoticed.</p>
+                        <div class="feature-visual">🌍 Global Management</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimise Tab -->
+            <div class="tab-content" id="optimise-tab">
+                <div class="tab-header">
+                    <h2>Optimise</h2>
+                    <p>Spend with full oversight and AI-powered optimisation insights.</p>
+                </div>
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <h3>Analytics</h3>
+                        <p>Stay in the know with detailed spending insights all in one dashboard.</p>
+                        <div class="feature-visual">📈 Spend Analytics</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Vendor management</h3>
+                        <p>Track and optimise spend, prevent missed renewals, and ensure compliance.</p>
+                        <div class="feature-visual">🏢 Vendor Tracking</div>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Spend Insights</h3>
+                        <p>Spot duplicate subscriptions, overpaying, and more with AI-powered insights.</p>
+                        <div class="feature-visual">🤖 AI Insights</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <h2>Get started with Pleo</h2>
+            <p>Join 40,000+ customers already using Pleo to stay on top of company spending. Start your free trial.</p>
+            <a href="#" class="btn btn-primary" id="get-started-cta-btn">Get started</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#" class="footer-link" data-link="overview">Overview</a></li>
+                        <li><a href="#" class="footer-link" data-link="pricing">Pricing</a></li>
+                        <li><a href="#" class="footer-link" data-link="integrations">Integrations</a></li>
+                        <li><a href="#" class="footer-link" data-link="status">Status</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#" class="footer-link" data-link="about">About us</a></li>
+                        <li><a href="#" class="footer-link" data-link="careers">Careers</a></li>
+                        <li><a href="#" class="footer-link" data-link="press">Press</a></li>
+                        <li><a href="#" class="footer-link" data-link="legal">Legal</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#" class="footer-link" data-link="blog">Blog</a></li>
+                        <li><a href="#" class="footer-link" data-link="help">Help centre</a></li>
+                        <li><a href="#" class="footer-link" data-link="faq">FAQ</a></li>
+                        <li><a href="#" class="footer-link" data-link="webinars">Webinars</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Solutions</h4>
+                    <ul>
+                        <li><a href="#" class="footer-link" data-link="startups">Startups</a></li>
+                        <li><a href="#" class="footer-link" data-link="smb">Small businesses</a></li>
+                        <li><a href="#" class="footer-link" data-link="enterprise">Larger businesses</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Pleo Demo. Built with Segment Analytics & Amplitude Session Replay.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Segment Analytics & Amplitude Session Replay Integration -->
+    <script src="https://cdn.segment.com/analytics.js/v1/5pU6Wn5aN9QRRzXHfMjCmDcDLV5eXQC9/analytics.min.js"></script>
+    <script src="https://unpkg.com/@amplitude/session-replay-browser@1/dist/session-replay.umd.js"></script>
+    
+    <script>
+        // Cookie helper functions
+        const cookie = {
+            set: function(name, value, days = 365) {
+                const expires = new Date(Date.now() + days * 864e5).toUTCString();
+                document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+            },
+            get: function(name) {
+                return document.cookie.split('; ').reduce((r, v) => {
+                    const parts = v.split('=');
+                    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+                }, '');
+            },
+            delete: function(name) {
+                this.set(name, '', -1);
+            }
+        };
+
+        // Configuration
+        const SEGMENT_WRITE_KEY = '5pU6Wn5aN9QRRzXHfMjCmDcDLV5eXQC9'; // Replace with your Segment write key
+        const AMPLITUDE_API_KEY = '07fbf2b223f4d7383e796ec350e6edc0'; // Amplitude API key
+
+        let analyticsInitialized = false;
+        let segmentAnalytics = null;
+        let sessionReplay = null;
+
+        // Initialize analytics (only after consent)
+        async function initializeAnalytics() {
+            if (analyticsInitialized) return;
+
+            try {
+                // Segment is already loaded via CDN, get the global analytics object
+                segmentAnalytics = window.analytics;
+
+                // Helper function to get stored session ID
+                const getStoredSessionId = () => {
+                    return cookie.get("analytics_session_id") || 0;
+                };
+
+                // Get user info from Segment
+                const user = segmentAnalytics.user();
+                const storedSessionId = getStoredSessionId();
+
+                // Initialize Session Replay
+                sessionReplay = window.sessionReplay;
+                await sessionReplay.init(AMPLITUDE_API_KEY, {
+                    sessionId: storedSessionId,
+                    deviceId: user.anonymousId()
+                }).promise;
+
+                console.log('Session Replay initialized with deviceId:', user.anonymousId(), 'sessionId:', storedSessionId);
+
+                // Add middleware to check if the session id has changed and update the session replay instance
+                segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
+                    const storedSessionId = getStoredSessionId();
+                    setTimeout(() => {
+                        const nextSessionId = payload.obj?.integrations?.['Actions Amplitude']?.session_id || 0;
+                        if (storedSessionId < nextSessionId) {
+                            cookie.set("analytics_session_id", nextSessionId);
+                            sessionReplay.setSessionId(nextSessionId);
+                            console.log('Session ID updated to:', nextSessionId);
+                        }
+                    }, 0);
+                    next(payload);
+                });
+
+                // Add middleware to always add session replay properties to track calls
+                segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
+                    const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
+                    if (payload.type() === "track") {
+                        payload.obj.properties = {
+                            ...payload.obj.properties,
+                            ...sessionReplayProperties,
+                        };
+                    }
+                    next(payload);
+                });
+
+                analyticsInitialized = true;
+
+                // Track page view
+                segmentAnalytics.page('Homepage', {
+                    title: 'Pleo - Smart spend management',
+                    url: window.location.href
+                });
+
+                // Track initial analytics initialized event
+                segmentAnalytics.track('Analytics Initialized', {
+                    source: 'segment',
+                    sessionReplayEnabled: true,
+                    deviceId: user.anonymousId(),
+                    sessionId: storedSessionId
+                });
+
+                console.log('Segment Analytics & Amplitude Session Replay initialized successfully');
+
+            } catch (error) {
+                console.error('Error initializing analytics:', error);
+            }
+        }
+
+        // Cookie Consent Management
+        function showCookieBanner() {
+            const consent = cookie.get('cookie_consent');
+            if (!consent) {
+                document.getElementById('cookie-consent-banner').style.display = 'block';
+            } else if (consent === 'accepted') {
+                initializeAnalytics();
+            }
+        }
+
+        document.getElementById('accept-cookies').addEventListener('click', function() {
+            cookie.set('cookie_consent', 'accepted', 365);
+            document.getElementById('cookie-consent-banner').style.display = 'none';
+            
+            // Initialize analytics after consent
+            initializeAnalytics();
+
+            // Track consent acceptance
+            setTimeout(() => {
+                if (segmentAnalytics) {
+                    segmentAnalytics.track('Cookie Consent Given', {
+                        consent_type: 'accepted',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }, 100);
+        });
+
+        document.getElementById('decline-cookies').addEventListener('click', function() {
+            cookie.set('cookie_consent', 'declined', 365);
+            document.getElementById('cookie-consent-banner').style.display = 'none';
+            
+            console.log('Analytics disabled - user declined cookies');
+        });
+
+        // Show banner on page load
+        showCookieBanner();
+
+        // Event Tracking Functions
+        function trackEvent(eventName, properties = {}) {
+            if (analyticsInitialized && segmentAnalytics) {
+                segmentAnalytics.track(eventName, properties);
+                console.log('Event tracked:', eventName, properties);
+            }
+        }
+
+        // Button Click Tracking
+        document.getElementById('get-started-header-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Get Started Clicked', {
+                location: 'header',
+                button_text: 'Get started'
+            });
+        });
+
+        document.getElementById('contact-sales-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Contact Sales Clicked', {
+                location: 'header',
+                button_text: 'Contact sales'
+            });
+        });
+
+        document.getElementById('explore-product-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Explore Product Clicked', {
+                location: 'header',
+                button_text: 'Explore product'
+            });
+        });
+
+        document.getElementById('login-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Log In Clicked', {
+                location: 'header',
+                button_text: 'Log in'
+            });
+        });
+
+        document.getElementById('get-started-hero-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Get Started Clicked', {
+                location: 'hero',
+                button_text: 'Get started'
+            });
+        });
+
+        document.getElementById('contact-sales-hero-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Contact Sales Clicked', {
+                location: 'hero',
+                button_text: 'Contact sales'
+            });
+        });
+
+        document.getElementById('learn-more-integrations-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Learn More Clicked', {
+                section: 'integrations',
+                button_text: 'Learn more'
+            });
+        });
+
+        document.getElementById('get-started-cta-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            trackEvent('Get Started Clicked', {
+                location: 'cta_section',
+                button_text: 'Get started'
+            });
+        });
+
+        // Tab Switching
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Track tab switch
+                trackEvent('Tab Switched', {
+                    tab_name: targetTab,
+                    previous_tab: document.querySelector('.tab-btn.active').getAttribute('data-tab')
+                });
+
+                // Update active states
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById(targetTab + '-tab').classList.add('active');
+            });
+        });
+
+        // Footer Link Tracking
+        document.querySelectorAll('.footer-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const linkName = this.getAttribute('data-link');
+                trackEvent('Footer Link Clicked', {
+                    link_name: linkName,
+                    link_text: this.textContent
+                });
+            });
+        });
+
+        // Scroll Depth Tracking
+        let maxScroll = 0;
+        const scrollMilestones = [25, 50, 75, 100];
+        const trackedMilestones = new Set();
+
+        window.addEventListener('scroll', function() {
+            const scrollPercentage = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+            
+            if (scrollPercentage > maxScroll) {
+                maxScroll = scrollPercentage;
+                
+                scrollMilestones.forEach(milestone => {
+                    if (scrollPercentage >= milestone && !trackedMilestones.has(milestone)) {
+                        trackedMilestones.add(milestone);
+                        trackEvent('Scroll Depth Reached', {
+                            percentage: milestone,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
+            }
+        });
+
+        // Navigation Link Tracking
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                trackEvent('Navigation Link Clicked', {
+                    link_text: this.textContent,
+                    link_href: this.getAttribute('href')
+                });
+            });
+        });
+
+        // Feature Card Interaction Tracking
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const cardTitle = this.querySelector('h3').textContent;
+                const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+                trackEvent('Feature Card Hovered', {
+                    card_title: cardTitle,
+                    tab: activeTab
+                });
+            });
+        });
+
+        // Stats Card Visibility Tracking
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px'
+        };
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    trackEvent('Stats Section Viewed', {
+                        timestamp: new Date().toISOString()
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+
+        // Integration Section Visibility Tracking
+        const integrationsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    trackEvent('Integrations Section Viewed', {
+                        timestamp: new Date().toISOString()
+                    });
+                    integrationsObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const integrationsSection = document.querySelector('.integrations-section');
+        if (integrationsSection) {
+            integrationsObserver.observe(integrationsSection);
+        }
+    </script>
+</body>
+</html>
+
