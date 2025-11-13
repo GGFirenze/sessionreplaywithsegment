@@ -133,15 +133,205 @@
             align-items: center;
         }
 
-        .nav-links a {
+        .nav-links li {
+            position: relative;
+        }
+
+        .nav-links > li > a {
             color: #1a1a1a;
             text-decoration: none;
             font-size: 15px;
             transition: color 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .nav-links a:hover {
+        .nav-links > li > a:hover {
             color: #ff5d9e;
+        }
+
+        .nav-links > li > a::after {
+            content: '▾';
+            font-size: 10px;
+            opacity: 0.6;
+            display: none;
+        }
+
+        .nav-links > li:has(.mega-menu) > a::after {
+            display: inline-block;
+        }
+
+        /* Mega Menu Dropdown */
+        .mega-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            min-width: 600px;
+            max-width: 900px;
+            margin-top: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 1000;
+        }
+
+        /* Products mega menu is wider */
+        .nav-links li:first-child .mega-menu {
+            min-width: 800px;
+        }
+
+        /* Solutions and Resources mega menus are wider */
+        .nav-links li:nth-child(2) .mega-menu,
+        .nav-links li:nth-child(3) .mega-menu {
+            min-width: 800px;
+        }
+
+        /* Partners mega menu is medium width */
+        .nav-links li:nth-child(4) .mega-menu {
+            min-width: 700px;
+        }
+
+        .nav-links li:hover .mega-menu {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mega-menu-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 48px;
+        }
+
+        /* Products mega menu has 3 columns */
+        .nav-links li:first-child .mega-menu-content {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        /* Solutions mega menu has 3 columns */
+        .solutions-menu {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        /* Resources mega menu has 3 columns */
+        .resources-menu {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        /* Partners mega menu has 2 columns */
+        .partners-menu {
+            grid-template-columns: 1fr 1.5fr;
+        }
+
+        .mega-menu-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mega-menu-section ul {
+            list-style: none;
+        }
+
+        .mega-menu-section ul li {
+            margin-bottom: 12px;
+        }
+
+        .mega-menu-section ul li a {
+            color: #1a1a1a;
+            font-size: 15px;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: block;
+            padding: 4px 0;
+        }
+
+        .mega-menu-section ul li a:hover {
+            color: #ff5d9e;
+        }
+
+        .mega-menu-promo {
+            background: linear-gradient(135deg, #ffd4e5 0%, #ffc9e0 100%);
+            padding: 32px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .mega-menu-promo-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .mega-menu-promo h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            color: #1a1a1a;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .mega-menu-promo .btn {
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 24px;
+        }
+
+        .mega-menu-promo .btn:hover {
+            background: #333;
+        }
+
+        /* Yellow promo variant */
+        .mega-menu-promo-yellow {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff4d9 100%);
+        }
+
+        .mega-menu-promo-yellow-alt {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff4d9 100%);
+        }
+
+        /* Pink promo variant */
+        .mega-menu-promo-pink {
+            background: linear-gradient(135deg, #ffe6f0 0%, #ffd9e8 100%);
+        }
+
+        .mega-menu-promo-badge {
+            background: #ff5d9e;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 auto 16px;
+            display: inline-block;
+            line-height: 1.4;
+        }
+
+        /* Yellow alt variant has centered layout */
+        .mega-menu-promo-yellow-alt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mega-menu-promo-yellow-alt h4 {
+            text-align: center;
+            max-width: 280px;
         }
 
         .nav-right {
@@ -549,6 +739,10 @@
             .nav-links {
                 display: none;
             }
+
+            .mega-menu {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -572,17 +766,127 @@
         <nav>
             <a href="#" class="logo">PLEO</a>
             <ul class="nav-links">
-                <li><a href="#products">Products</a></li>
-                <li><a href="#solutions">Solutions</a></li>
-                <li><a href="#resources">Resources</a></li>
-                <li><a href="#partners">Partners</a></li>
+                <li>
+                    <a href="#products">Products</a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-content">
+                            <div class="mega-menu-section">
+                                <h4>📊 Products</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Products" data-item="Business expense cards">Business expense cards</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Products" data-item="Expense management">Expense management</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Products" data-item="Accounts payable">Accounts payable</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Products" data-item="Reimbursements">Reimbursements</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Products" data-item="Vendor management">Vendor management</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-section">
+                                <h4>🔷 Platform</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Platform" data-item="Overview">Overview</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Platform" data-item="Integrations">Integrations</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Platform" data-item="Spend controls">Spend controls</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Products" data-area="Platform" data-item="Accounting automation">Accounting automation</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-promo">
+                                <div class="mega-menu-promo-icon">🔍</div>
+                                <h4>See how easy it is to manage your company spend in Pleo</h4>
+                                <a href="#" class="btn" id="mega-menu-explore-product">Explore product</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a href="#solutions">Solutions</a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-content solutions-menu">
+                            <div class="mega-menu-section">
+                                <h4>🏢 Company size</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Company size" data-item="Startups">Startups</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Company size" data-item="Small businesses">Small businesses</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Company size" data-item="Larger businesses">Larger businesses</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-section">
+                                <h4>🏢 Use cases</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Use cases" data-item="Business travel expenses">Business travel expenses</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Use cases" data-item="Software subscriptions">Software subscriptions</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Solutions" data-area="Use cases" data-item="Marketing spend">Marketing spend</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-promo mega-menu-promo-yellow">
+                                <div class="mega-menu-promo-icon">💳</div>
+                                <h4>Prevent overspending on software subscriptions</h4>
+                                <a href="#" class="btn" id="mega-menu-solutions-learn-more">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a href="#resources">Resources</a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-content resources-menu">
+                            <div class="mega-menu-section">
+                                <h4>📢 Helpful content</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="Customer stories">Customer stories</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="Ebooks">Ebooks</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="Webinars and events">Webinars and events</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="FAQ">FAQ</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="Blog">Blog</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Helpful content" data-item="Onboarding resources">Onboarding resources</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-section">
+                                <h4>🏷️ Made for you</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Made for you" data-item="Free tools">Free tools</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Made for you" data-item="Pleo ROI calculator">Pleo ROI calculator</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Made for you" data-item="Expense policy builder">Expense policy builder</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Made for you" data-item="Product tour">Product tour</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Resources" data-area="Made for you" data-item="App directory">App directory</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-promo mega-menu-promo-pink">
+                                <div class="mega-menu-promo-badge">WEBINAR<br>November 26<br>10 AM GMT</div>
+                                <h4>All-in-one: The future of your business spend</h4>
+                                <p style="margin: 12px 0; font-size: 14px; color: #333;">Pleo Webinar - November 26</p>
+                                <a href="#" class="btn" id="mega-menu-resources-secure-place">Secure your place</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a href="#partners">Partners</a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-content partners-menu">
+                            <div class="mega-menu-section">
+                                <h4>🤝 Partners</h4>
+                                <ul>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Partners" data-area="Partners" data-item="Pleo Partners">Pleo Partners</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Partners" data-area="Partners" data-item="Accounting Partners">Accounting Partners</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Partners" data-area="Partners" data-item="Consulting Partners">Consulting Partners</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Partners" data-area="Partners" data-item="Partners Directory">Partners Directory</a></li>
+                                    <li><a href="#" class="mega-menu-link" data-menu="Partners" data-area="Partners" data-item="Technology Partners">Technology Partners</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-promo mega-menu-promo-yellow-alt">
+                                <div class="mega-menu-promo-icon">🤝</div>
+                                <h4>Empower your clients as an official Pleo partner.</h4>
+                                <a href="#" class="btn" id="mega-menu-partners-find-out">Find out more</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
                 <li><a href="#pricing">Pricing</a></li>
             </ul>
             <div class="nav-right">
-                <a href="#" class="btn btn-secondary" id="explore-product-btn">Explore product</a>
                 <a href="#" class="btn btn-secondary" id="login-btn">Log in</a>
+                <a href="#" class="btn btn-secondary" id="explore-product-btn">Explore product</a>
                 <a href="#" class="btn btn-secondary" id="contact-sales-btn">Contact sales</a>
-                <a href="#" class="btn btn-primary" id="get-started-header-btn">Get started</a>
             </div>
         </nav>
     </header>
@@ -1000,14 +1304,6 @@
         }
 
         // Button Click Tracking
-        document.getElementById('get-started-header-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            trackEvent('Get Started Clicked', {
-                location: 'header',
-                button_text: 'Get started'
-            });
-        });
-
         document.getElementById('contact-sales-btn').addEventListener('click', function(e) {
             e.preventDefault();
             trackEvent('Contact Sales Clicked', {
@@ -1122,16 +1418,70 @@
             }
         });
 
-        // Navigation Link Tracking
-        document.querySelectorAll('.nav-links a').forEach(link => {
+        // Mega Menu Link Tracking
+        document.querySelectorAll('.mega-menu-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                trackEvent('Navigation Link Clicked', {
-                    link_text: this.textContent,
-                    link_href: this.getAttribute('href')
+                const menu = this.getAttribute('data-menu');
+                const area = this.getAttribute('data-area');
+                const item = this.getAttribute('data-item');
+                
+                trackEvent(`${menu} Nav Item Clicked`, {
+                    nav_menu_item: item,
+                    area: area,
+                    menu: menu
                 });
             });
         });
+
+        // Mega Menu Promo Button Tracking
+        const megaMenuExploreBtn = document.getElementById('mega-menu-explore-product');
+        if (megaMenuExploreBtn) {
+            megaMenuExploreBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                trackEvent('Explore Product Clicked', {
+                    location: 'products_mega_menu_promo',
+                    button_text: 'Explore product'
+                });
+            });
+        }
+
+        const megaMenuSolutionsBtn = document.getElementById('mega-menu-solutions-learn-more');
+        if (megaMenuSolutionsBtn) {
+            megaMenuSolutionsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                trackEvent('Learn More Clicked', {
+                    location: 'solutions_mega_menu_promo',
+                    button_text: 'Learn more',
+                    promo_content: 'Prevent overspending on software subscriptions'
+                });
+            });
+        }
+
+        const megaMenuResourcesBtn = document.getElementById('mega-menu-resources-secure-place');
+        if (megaMenuResourcesBtn) {
+            megaMenuResourcesBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                trackEvent('Webinar Registration Clicked', {
+                    location: 'resources_mega_menu_promo',
+                    button_text: 'Secure your place',
+                    webinar_name: 'All-in-one: The future of your business spend',
+                    webinar_date: 'November 26'
+                });
+            });
+        }
+
+        const megaMenuPartnersBtn = document.getElementById('mega-menu-partners-find-out');
+        if (megaMenuPartnersBtn) {
+            megaMenuPartnersBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                trackEvent('Find Out More Clicked', {
+                    location: 'partners_mega_menu_promo',
+                    button_text: 'Find out more',
+                    promo_content: 'Empower your clients as an official Pleo partner'
+                });
+            });
+        }
 
         // Feature Card Interaction Tracking
         document.querySelectorAll('.feature-card').forEach(card => {
