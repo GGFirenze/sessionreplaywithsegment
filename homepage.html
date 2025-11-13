@@ -1193,18 +1193,20 @@
 
                 // Wait for Segment to be fully loaded before initializing Session Replay
                 segmentAnalytics.ready(async function() {
-                    // Get user info from Segment
-                    const user = segmentAnalytics.user();
+                    // Get stored session ID
                     const storedSessionId = getStoredSessionId();
+                    
+                    // Get device ID from Segment (anonymousId is stored in localStorage)
+                    const deviceId = segmentAnalytics.user ? segmentAnalytics.user().anonymousId() : null;
 
                     // Initialize Session Replay
                     sessionReplay = window.sessionReplay;
                     await sessionReplay.init(AMPLITUDE_API_KEY, {
                         sessionId: storedSessionId,
-                        deviceId: user.anonymousId()
+                        deviceId: deviceId
                     }).promise;
 
-                    console.log('Session Replay initialized with deviceId:', user.anonymousId(), 'sessionId:', storedSessionId);
+                    console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', storedSessionId);
 
                     // Add middleware to check if the session id has changed and update the session replay instance
                     segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
