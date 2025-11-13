@@ -1175,7 +1175,7 @@
         const AMPLITUDE_API_KEY = '07fbf2b223f4d7383e796ec350e6edc0'; // Amplitude API key
 
         let analyticsInitialized = false;
-        let segmentAnalytics = null;
+        let segmentAnalytics = window.analytics; // Segment snippet creates this immediately
         let sessionReplay = null;
 
         // Initialize analytics (only after consent)
@@ -1184,7 +1184,6 @@
 
             try {
                 // Load Segment analytics after consent
-                segmentAnalytics = window.analytics;
                 segmentAnalytics.load(SEGMENT_WRITE_KEY);
 
                 // Helper function to get stored session ID
@@ -1297,9 +1296,12 @@
 
         // Event Tracking Functions
         function trackEvent(eventName, properties = {}) {
-            if (analyticsInitialized && segmentAnalytics) {
+            if (segmentAnalytics) {
+                // Segment automatically queues events before it's fully loaded
                 segmentAnalytics.track(eventName, properties);
                 console.log('Event tracked:', eventName, properties);
+            } else {
+                console.warn('Segment not available - event not tracked:', eventName);
             }
         }
 
