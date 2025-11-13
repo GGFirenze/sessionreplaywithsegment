@@ -1185,6 +1185,9 @@
             try {
                 // Load Segment analytics after consent
                 segmentAnalytics.load(SEGMENT_WRITE_KEY);
+                
+                // Send an identify call to ensure Segment creates a user/device ID
+                segmentAnalytics.identify();
 
                 // Helper function to get stored session ID
                 const getStoredSessionId = () => {
@@ -1193,6 +1196,8 @@
 
                 // Wait for Segment to be fully loaded before initializing Session Replay
                 segmentAnalytics.ready(async function() {
+                    // Give Segment extra time to process identify and create anonymousId
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     // Get stored session ID
                     const storedSessionId = getStoredSessionId();
                     
