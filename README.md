@@ -4,7 +4,7 @@
 
 **Document Version:** 2.0  
 **Last Updated:** November 13, 2024  
-**Author:** Amplitude Team  
+**Author:** Giuliano Giannini  
 **For:** Customers using Segment as their analytics source
 
 ---
