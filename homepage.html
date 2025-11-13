@@ -1197,50 +1197,57 @@
                     const storedSessionId = getStoredSessionId();
                     
                     // CRITICAL: Get device ID from Segment to ensure it matches
-                    // Segment stores anonymousId in localStorage as "ajs_anonymous_id"
+                    // This MUST be Segment's anonymousId for Country and events to work
                     let deviceId = null;
+                    let attempts = 0;
+                    const maxAttempts = 5;
                     
-                    // First, try to get from Segment's user object
-                    if (segmentAnalytics.user) {
-                        deviceId = segmentAnalytics.user().anonymousId();
-                    }
-                    
-                    // If still null, check Segment's localStorage directly
-                    if (!deviceId) {
-                        try {
-                            const segmentAnonId = localStorage.getItem('ajs_anonymous_id');
-                            if (segmentAnonId) {
-                                // Remove quotes if present
-                                deviceId = segmentAnonId.replace(/"/g, '');
-                                console.log('Retrieved device ID from Segment localStorage:', deviceId);
-                            }
-                        } catch (e) {
-                            console.warn('Could not access Segment localStorage:', e);
-                        }
-                    }
-                    
-                    // If STILL no device ID, wait a bit for Segment to create one
-                    if (!deviceId) {
-                        console.warn('Segment has not created anonymousId yet, waiting...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        
-                        // Try again
+                    // Try multiple times to get Segment's device ID
+                    while (!deviceId && attempts < maxAttempts) {
+                        // Method 1: From Segment's user object
                         if (segmentAnalytics.user) {
-                            deviceId = segmentAnalytics.user().anonymousId();
+                            try {
+                                deviceId = segmentAnalytics.user().anonymousId();
+                                if (deviceId) {
+                                    console.log('✅ Retrieved device ID from Segment user():', deviceId);
+                                    break;
+                                }
+                            } catch (e) {
+                                console.warn('Error getting device ID from Segment user():', e);
+                            }
+                        }
+                        
+                        // Method 2: From Segment's localStorage
+                        if (!deviceId) {
+                            try {
+                                const segmentAnonId = localStorage.getItem('ajs_anonymous_id');
+                                if (segmentAnonId) {
+                                    deviceId = segmentAnonId.replace(/"/g, '');
+                                    console.log('✅ Retrieved device ID from Segment localStorage:', deviceId);
+                                    break;
+                                }
+                            } catch (e) {
+                                console.warn('Error accessing Segment localStorage:', e);
+                            }
+                        }
+                        
+                        // If still no device ID, wait and try again
+                        if (!deviceId) {
+                            attempts++;
+                            console.warn(`⏳ Segment device ID not ready yet (attempt ${attempts}/${maxAttempts}), waiting...`);
+                            await new Promise(resolve => setTimeout(resolve, 500));
                         }
                     }
                     
-                    // Last resort: generate one that matches Segment's format
+                    // If we STILL don't have a device ID after all attempts
                     if (!deviceId) {
-                        console.warn('Creating device ID - this should match Segment');
-                        deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                            const r = Math.random() * 16 | 0;
-                            const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        });
+                        console.error('❌ Could not retrieve Segment device ID after multiple attempts!');
+                        console.error('❌ Session Replay will NOT work properly without matching device IDs');
+                        console.error('❌ Skipping Session Replay initialization');
+                        return; // Don't initialize Session Replay with a mismatched device ID
                     }
                     
-                    console.log('Using device ID for Session Replay:', deviceId);
+                    console.log('✅ Using Segment device ID for Session Replay:', deviceId);
 
                     // Wait for Session Replay SDK to be available
                     if (!window.sessionReplay) {
