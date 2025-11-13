@@ -1199,6 +1199,18 @@
                     // Get device ID from Segment (anonymousId is stored in localStorage)
                     const deviceId = segmentAnalytics.user ? segmentAnalytics.user().anonymousId() : null;
 
+                    // Wait for Session Replay SDK to be available
+                    if (!window.sessionReplay) {
+                        console.warn('⚠️ Session Replay SDK not loaded yet, retrying...');
+                        // Wait a bit and try again
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    if (!window.sessionReplay) {
+                        console.error('❌ Session Replay SDK failed to load - check network requests');
+                        return;
+                    }
+
                     // Initialize Session Replay
                     sessionReplay = window.sessionReplay;
                     
