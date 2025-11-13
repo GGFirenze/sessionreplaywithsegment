@@ -1176,7 +1176,7 @@
 
         let analyticsInitialized = false;
         let segmentAnalytics = window.analytics; // Segment snippet creates this immediately
-        let sessionReplay = null;
+        let sessionReplayInstance = null;
 
         // Initialize analytics (only after consent)
         async function initializeAnalytics() {
@@ -1212,12 +1212,12 @@
                     }
 
                     // Initialize Session Replay
-                    sessionReplay = window.sessionReplay;
+                    sessionReplayInstance = window.sessionReplay;
                     
                     // Use current timestamp if no session ID is stored yet
                     const initialSessionId = storedSessionId || Date.now();
                     
-                    await sessionReplay.init(AMPLITUDE_API_KEY, {
+                    await sessionReplayInstance.init(AMPLITUDE_API_KEY, {
                         sessionId: initialSessionId,
                         deviceId: deviceId,
                         sampleRate: 1, // Capture 100% of sessions for testing
@@ -1227,7 +1227,7 @@
                     console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', initialSessionId);
                     
                     // Verify Session Replay properties are available
-                    const testReplayProps = sessionReplay.getSessionReplayProperties();
+                    const testReplayProps = sessionReplayInstance.getSessionReplayProperties();
                     console.log('Session Replay Properties:', testReplayProps);
                     
                     if (testReplayProps && testReplayProps['[Amplitude] Session Replay ID']) {
@@ -1243,7 +1243,7 @@
                             const nextSessionId = payload.obj?.integrations?.['Actions Amplitude']?.session_id || 0;
                             if (storedSessionId < nextSessionId) {
                                 cookie.set("analytics_session_id", nextSessionId);
-                                sessionReplay.setSessionId(nextSessionId);
+                                sessionReplayInstance.setSessionId(nextSessionId);
                                 console.log('Session ID updated to:', nextSessionId);
                             }
                         }, 0);
@@ -1252,8 +1252,8 @@
 
                     // Add middleware to always add session replay properties to ALL events
                     segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
-                        if (sessionReplay) {
-                            const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
+                        if (sessionReplayInstance) {
+                            const sessionReplayProperties = sessionReplayInstance.getSessionReplayProperties();
                             
                             // Add Session Replay properties to track, page, and identify calls
                             if (payload.type() === "track" || payload.type() === "page" || payload.type() === "identify") {
