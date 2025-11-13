@@ -838,7 +838,14 @@
     </footer>
 
     <!-- Segment Analytics & Amplitude Session Replay Integration -->
-    <script src="https://cdn.segment.com/analytics.js/v1/5pU6Wn5aN9QRRzXHfMjCmDcDLV5eXQC9/analytics.min.js"></script>
+    <!-- Segment Snippet (loads on consent) -->
+    <script>
+        !function(){var i="analytics",analytics=window[i]=window[i]||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","screen","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware","register"];analytics.factory=function(e){return function(){if(window[i].initialized)return window[i][e].apply(window[i],arguments);var n=Array.prototype.slice.call(arguments);if(["track","screen","alias","group","page","identify"].indexOf(e)>-1){var c=document.querySelector("link[rel='canonical']");n.push({__t:"bpc",c:c&&c.getAttribute("href")||void 0,p:location.pathname,u:location.href,s:location.search,t:document.title,r:document.referrer})}n.unshift(e);analytics.push(n);return analytics}};for(var n=0;n<analytics.methods.length;n++){var key=analytics.methods[n];analytics[key]=analytics.factory(key)}analytics.load=function(key,n){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.setAttribute("data-global-segment-analytics-key",i);t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r);analytics._loadOptions=n};analytics._writeKey="nfXccBZm2U0QbwMUFnGblTetsMRb1CQO";;analytics.SNIPPET_VERSION="5.2.0";
+        // Note: analytics.load() will be called only after cookie consent
+        }}();
+    </script>
+    
+    <!-- Amplitude Session Replay -->
     <script src="https://unpkg.com/@amplitude/session-replay-browser@1/dist/session-replay.umd.js"></script>
     
     <script>
@@ -860,7 +867,7 @@
         };
 
         // Configuration
-        const SEGMENT_WRITE_KEY = '5pU6Wn5aN9QRRzXHfMjCmDcDLV5eXQC9'; // Replace with your Segment write key
+        const SEGMENT_WRITE_KEY = 'nfXccBZm2U0QbwMUFnGblTetsMRb1CQO'; // Segment write key
         const AMPLITUDE_API_KEY = '07fbf2b223f4d7383e796ec350e6edc0'; // Amplitude API key
 
         let analyticsInitialized = false;
@@ -872,70 +879,74 @@
             if (analyticsInitialized) return;
 
             try {
-                // Segment is already loaded via CDN, get the global analytics object
+                // Load Segment analytics after consent
                 segmentAnalytics = window.analytics;
+                segmentAnalytics.load(SEGMENT_WRITE_KEY);
 
                 // Helper function to get stored session ID
                 const getStoredSessionId = () => {
                     return cookie.get("analytics_session_id") || 0;
                 };
 
-                // Get user info from Segment
-                const user = segmentAnalytics.user();
-                const storedSessionId = getStoredSessionId();
-
-                // Initialize Session Replay
-                sessionReplay = window.sessionReplay;
-                await sessionReplay.init(AMPLITUDE_API_KEY, {
-                    sessionId: storedSessionId,
-                    deviceId: user.anonymousId()
-                }).promise;
-
-                console.log('Session Replay initialized with deviceId:', user.anonymousId(), 'sessionId:', storedSessionId);
-
-                // Add middleware to check if the session id has changed and update the session replay instance
-                segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
+                // Wait for Segment to be fully loaded before initializing Session Replay
+                segmentAnalytics.ready(async function() {
+                    // Get user info from Segment
+                    const user = segmentAnalytics.user();
                     const storedSessionId = getStoredSessionId();
-                    setTimeout(() => {
-                        const nextSessionId = payload.obj?.integrations?.['Actions Amplitude']?.session_id || 0;
-                        if (storedSessionId < nextSessionId) {
-                            cookie.set("analytics_session_id", nextSessionId);
-                            sessionReplay.setSessionId(nextSessionId);
-                            console.log('Session ID updated to:', nextSessionId);
+
+                    // Initialize Session Replay
+                    sessionReplay = window.sessionReplay;
+                    await sessionReplay.init(AMPLITUDE_API_KEY, {
+                        sessionId: storedSessionId,
+                        deviceId: user.anonymousId()
+                    }).promise;
+
+                    console.log('Session Replay initialized with deviceId:', user.anonymousId(), 'sessionId:', storedSessionId);
+
+                    // Add middleware to check if the session id has changed and update the session replay instance
+                    segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
+                        const storedSessionId = getStoredSessionId();
+                        setTimeout(() => {
+                            const nextSessionId = payload.obj?.integrations?.['Actions Amplitude']?.session_id || 0;
+                            if (storedSessionId < nextSessionId) {
+                                cookie.set("analytics_session_id", nextSessionId);
+                                sessionReplay.setSessionId(nextSessionId);
+                                console.log('Session ID updated to:', nextSessionId);
+                            }
+                        }, 0);
+                        next(payload);
+                    });
+
+                    // Add middleware to always add session replay properties to track calls
+                    segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
+                        const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
+                        if (payload.type() === "track") {
+                            payload.obj.properties = {
+                                ...payload.obj.properties,
+                                ...sessionReplayProperties,
+                            };
                         }
-                    }, 0);
-                    next(payload);
+                        next(payload);
+                    });
+
+                    analyticsInitialized = true;
+
+                    // Track page view
+                    segmentAnalytics.page('Homepage', {
+                        title: 'Pleo - Smart spend management',
+                        url: window.location.href
+                    });
+
+                    // Track initial analytics initialized event
+                    segmentAnalytics.track('Analytics Initialized', {
+                        source: 'segment',
+                        sessionReplayEnabled: true,
+                        deviceId: user.anonymousId(),
+                        sessionId: storedSessionId
+                    });
+
+                    console.log('Segment Analytics & Amplitude Session Replay initialized successfully');
                 });
-
-                // Add middleware to always add session replay properties to track calls
-                segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
-                    const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
-                    if (payload.type() === "track") {
-                        payload.obj.properties = {
-                            ...payload.obj.properties,
-                            ...sessionReplayProperties,
-                        };
-                    }
-                    next(payload);
-                });
-
-                analyticsInitialized = true;
-
-                // Track page view
-                segmentAnalytics.page('Homepage', {
-                    title: 'Pleo - Smart spend management',
-                    url: window.location.href
-                });
-
-                // Track initial analytics initialized event
-                segmentAnalytics.track('Analytics Initialized', {
-                    source: 'segment',
-                    sessionReplayEnabled: true,
-                    deviceId: user.anonymousId(),
-                    sessionId: storedSessionId
-                });
-
-                console.log('Segment Analytics & Amplitude Session Replay initialized successfully');
 
             } catch (error) {
                 console.error('Error initializing analytics:', error);
@@ -1175,4 +1186,3 @@
     </script>
 </body>
 </html>
-
