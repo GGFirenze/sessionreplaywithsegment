@@ -1196,25 +1196,51 @@
                     // Get stored session ID
                     const storedSessionId = getStoredSessionId();
                     
-                    // Get device ID from Segment (anonymousId is stored in localStorage)
-                    let deviceId = segmentAnalytics.user ? segmentAnalytics.user().anonymousId() : null;
+                    // CRITICAL: Get device ID from Segment to ensure it matches
+                    // Segment stores anonymousId in localStorage as "ajs_anonymous_id"
+                    let deviceId = null;
                     
-                    // If no device ID from Segment, generate one
+                    // First, try to get from Segment's user object
+                    if (segmentAnalytics.user) {
+                        deviceId = segmentAnalytics.user().anonymousId();
+                    }
+                    
+                    // If still null, check Segment's localStorage directly
                     if (!deviceId) {
-                        // Check if we have one stored
-                        deviceId = cookie.get('amplitude_device_id');
-                        if (!deviceId) {
-                            // Generate a new UUID-like device ID
-                            deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                                const r = Math.random() * 16 | 0;
-                                const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                                return v.toString(16);
-                            });
-                            // Store it for future sessions
-                            cookie.set('amplitude_device_id', deviceId, 365);
-                            console.log('Generated new device ID:', deviceId);
+                        try {
+                            const segmentAnonId = localStorage.getItem('ajs_anonymous_id');
+                            if (segmentAnonId) {
+                                // Remove quotes if present
+                                deviceId = segmentAnonId.replace(/"/g, '');
+                                console.log('Retrieved device ID from Segment localStorage:', deviceId);
+                            }
+                        } catch (e) {
+                            console.warn('Could not access Segment localStorage:', e);
                         }
                     }
+                    
+                    // If STILL no device ID, wait a bit for Segment to create one
+                    if (!deviceId) {
+                        console.warn('Segment has not created anonymousId yet, waiting...');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Try again
+                        if (segmentAnalytics.user) {
+                            deviceId = segmentAnalytics.user().anonymousId();
+                        }
+                    }
+                    
+                    // Last resort: generate one that matches Segment's format
+                    if (!deviceId) {
+                        console.warn('Creating device ID - this should match Segment');
+                        deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                            const r = Math.random() * 16 | 0;
+                            const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        });
+                    }
+                    
+                    console.log('Using device ID for Session Replay:', deviceId);
 
                     // Wait for Session Replay SDK to be available
                     if (!window.sessionReplay) {
