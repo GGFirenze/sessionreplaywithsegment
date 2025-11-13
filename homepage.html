@@ -1201,12 +1201,28 @@
 
                     // Initialize Session Replay
                     sessionReplay = window.sessionReplay;
+                    
+                    // Use current timestamp if no session ID is stored yet
+                    const initialSessionId = storedSessionId || Date.now();
+                    
                     await sessionReplay.init(AMPLITUDE_API_KEY, {
-                        sessionId: storedSessionId,
-                        deviceId: deviceId
+                        sessionId: initialSessionId,
+                        deviceId: deviceId,
+                        sampleRate: 1, // Capture 100% of sessions for testing
+                        debugMode: true // Enable debug mode for troubleshooting
                     }).promise;
 
-                    console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', storedSessionId);
+                    console.log('Session Replay initialized with deviceId:', deviceId, 'sessionId:', initialSessionId);
+                    
+                    // Verify Session Replay properties are available
+                    const testReplayProps = sessionReplay.getSessionReplayProperties();
+                    console.log('Session Replay Properties:', testReplayProps);
+                    
+                    if (testReplayProps && testReplayProps['[Amplitude] Session Replay ID']) {
+                        console.log('✅ Session Replay ID is being generated:', testReplayProps['[Amplitude] Session Replay ID']);
+                    } else {
+                        console.warn('⚠️ Session Replay ID is NOT being generated - check sampleRate and page focus');
+                    }
 
                     // Add middleware to check if the session id has changed and update the session replay instance
                     segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
@@ -1222,14 +1238,21 @@
                         next(payload);
                     });
 
-                    // Add middleware to always add session replay properties to track calls
+                    // Add middleware to always add session replay properties to ALL events
                     segmentAnalytics.addSourceMiddleware(({ payload, next, integrations }) => {
-                        const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
-                        if (payload.type() === "track") {
-                            payload.obj.properties = {
-                                ...payload.obj.properties,
-                                ...sessionReplayProperties,
-                            };
+                        if (sessionReplay) {
+                            const sessionReplayProperties = sessionReplay.getSessionReplayProperties();
+                            
+                            // Add Session Replay properties to track, page, and identify calls
+                            if (payload.type() === "track" || payload.type() === "page" || payload.type() === "identify") {
+                                payload.obj.properties = {
+                                    ...payload.obj.properties,
+                                    ...sessionReplayProperties,
+                                };
+                                
+                                // Log for debugging
+                                console.log('Session Replay properties added to event:', payload.obj.event || payload.type(), sessionReplayProperties);
+                            }
                         }
                         next(payload);
                     });
@@ -1246,8 +1269,8 @@
                     segmentAnalytics.track('Analytics Initialized', {
                         source: 'segment',
                         sessionReplayEnabled: true,
-                        deviceId: user.anonymousId(),
-                        sessionId: storedSessionId
+                        deviceId: deviceId,
+                        sessionId: initialSessionId
                     });
 
                     console.log('Segment Analytics & Amplitude Session Replay initialized successfully');
