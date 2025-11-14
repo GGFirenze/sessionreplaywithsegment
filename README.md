@@ -1,8 +1,7 @@
 [Amplitude-Session-Replay-Segment-Integration-Guide.md](https://github.com/user-attachments/files/23527992/Amplitude-Session-Replay-Segment-Integration-Guide.md)
 # Amplitude Session Replay + Segment Integration
 ## Complete Developer Implementation Guide
-
-**Document Version:** 2.0  
+ 
 **Last Updated:** November 13, 2024  
 **Author:** Giuliano Giannini  
 **For:** Customers using Segment as their analytics source
