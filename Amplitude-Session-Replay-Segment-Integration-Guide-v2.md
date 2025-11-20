@@ -3,7 +3,7 @@
 
 **Author:** Giuliano Giannini  
 **Last Updated:** November 20, 2025  
-**Implementation:** Pleo Demo Website
+**Implementation:** This Demo Website: https://ggfirenze.github.io/sessionreplaywithsegment/pleo-demo-session-id-only.html
 
 ---
 
