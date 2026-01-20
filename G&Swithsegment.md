@@ -2,7 +2,7 @@
 
 > **Implementation Guide for Third-Party Analytics Providers**
 
-This guide documents how to integrate Amplitude Guides and Surveys when using Segment as your primary analytics provider (instead of Amplitude Browser SDK directly).
+This guide documents how to integrate Amplitude Guides and Surveys when using Segment as your primary analytics provider (instead of Amplitude Browser SDK directly). In general, please refer to Amplitude's official documentation on how to instrument Guides and Surveys here: https://amplitude.com/docs/guides-and-surveys/sdk. This brief user guide has been put together for self learning purposes, it is tailored to a very specific use case, it refers to a very precise and simple architecture that constitutes a static webpage. Additionally, this guide is not constantly updated.
 
 ---
 
