@@ -1152,6 +1152,9 @@
     <!-- Amplitude Session Replay Standalone SDK -->
     <script src="https://cdn.amplitude.com/libs/session-replay-browser-1.20.1-min.js.gz"></script>
     
+    <!-- Amplitude Guides and Surveys SDK -->
+    <script src="https://cdn.amplitude.com/script/07fbf2b223f4d7383e796ec350e6edc0.engagement.js"></script>
+    
     <script>
         // Cookie helper functions
         const cookie = {
@@ -1292,6 +1295,77 @@
                     console.log('🔗 Events will automatically link via Device ID + Time + Session ID');
                     console.log('✨ No manual event tagging required!');
 
+                    // ========================================
+                    // GUIDES AND SURVEYS INITIALIZATION
+                    // ========================================
+                    // Using script loader (cdn.amplitude.com/script/API_KEY.engagement.js) which auto-initializes
+                    // We only need to call boot() for third-party providers like Segment
+                    // See: https://amplitude.com/docs/guides-and-surveys/sdk
+                    
+                    if (window.engagement) {
+                        try {
+                            // Note: Script loader auto-calls init(), so we skip explicit init()
+                            // Only boot() is needed to connect G&S with Segment
+                            console.log('✅ Guides and Surveys SDK loaded (auto-initialized by script loader)');
+
+                            // Boot Guides and Surveys with Segment device ID
+                            // This connects G&S to Segment and enables guide/survey display
+                            await window.engagement.boot({
+                                user: {
+                                    device_id: deviceId // CRITICAL: Must match Segment's anonymousId
+                                },
+                                // Forward G&S events (Survey Viewed, Response Submitted, etc.) to Segment
+                                integrations: [{
+                                    track: (event) => {
+                                        segmentAnalytics.track(event.event_type, event.event_properties);
+                                        console.log('📊 G&S event forwarded to Segment:', event.event_type);
+                                    }
+                                }]
+                            });
+                            console.log('✅ Guides and Surveys booted successfully!');
+                            console.log('   Device ID:', deviceId);
+
+                            // Set up event forwarding: Segment → Guides and Surveys
+                            // This enables guides/surveys to trigger on Segment events
+                            // See: https://amplitude.com/docs/guides-and-surveys/sdk#forwarding-events
+                            segmentAnalytics.on('track', (event, properties) => {
+                                if (window.engagement && window.engagement.forwardEvent) {
+                                    window.engagement.forwardEvent({
+                                        event_type: event,
+                                        event_properties: properties || {}
+                                    });
+                                    console.log('🔄 Event forwarded to G&S:', event);
+                                }
+                            });
+
+                            segmentAnalytics.on('page', (category, name, properties) => {
+                                if (window.engagement && window.engagement.forwardEvent) {
+                                    window.engagement.forwardEvent({
+                                        event_type: '[Amplitude] Page Viewed',
+                                        event_properties: {
+                                            ...properties,
+                                            page_name: name || 'Unknown',
+                                            page_category: category || 'Unknown'
+                                        }
+                                    });
+                                    console.log('🔄 Page event forwarded to G&S:', name);
+                                }
+                            });
+
+                            console.log('');
+                            console.log('🎯 Guides and Surveys ready!');
+                            console.log('   - G&S events → Segment (via integrations)');
+                            console.log('   - Segment events → G&S (via forwardEvent)');
+                            console.log('');
+                            console.log('🔍 Debug: Run window.engagement._debugStatus() to check status');
+
+                        } catch (gsError) {
+                            console.error('❌ Error initializing Guides and Surveys:', gsError);
+                        }
+                    } else {
+                        console.warn('⚠️ Guides and Surveys SDK not loaded');
+                    }
+
                     // Add middleware to check if the session id has changed and update the session replay instance
                     // NOTE: We still sync Session IDs but NO LONGER manually attach Session Replay properties to events
                     // The new Session Replay approach automatically links events via Device ID + Time + Session ID
@@ -1327,11 +1401,15 @@
                     segmentAnalytics.track('Analytics Initialized', {
                         source: 'segment',
                         sessionReplayEnabled: true,
+                        guidesAndSurveysEnabled: true,
                         deviceId: deviceId,
                         sessionId: initialSessionId
                     });
 
-                    console.log('Segment Analytics & Amplitude Session Replay initialized successfully');
+                    console.log('✅ Full analytics stack initialized:');
+                    console.log('   • Segment Analytics');
+                    console.log('   • Amplitude Session Replay');
+                    console.log('   • Amplitude Guides and Surveys');
                 });
 
             } catch (error) {
@@ -1621,4 +1699,3 @@
     </script>
 </body>
 </html>
-
