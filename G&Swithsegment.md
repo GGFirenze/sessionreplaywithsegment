@@ -2,7 +2,7 @@
 
 > **Implementation Guide for Third-Party Analytics Providers**
 
-This guide documents how to integrate Amplitude Guides and Surveys when using Segment as your primary analytics provider (instead of Amplitude Browser SDK directly). In general, please refer to Amplitude's official documentation on how to instrument Guides and Surveys here: https://amplitude.com/docs/guides-and-surveys/sdk. This brief user guide has been put together for self learning purposes, it is tailored to a very specific use case, it refers to a very precise and simple architecture that constitutes a static webpage. Additionally, this guide is not constantly updated.
+This guide documents how to integrate Amplitude Guides and Surveys when using Segment as your primary analytics provider (instead of Amplitude Browser SDK directly). This document is a self-reflection on the work delivered on this demo webpage. It is not official documentation. All customers are strongly encouraged to read Amplitude's official documentation here: https://amplitude.com/docs/guides-and-surveys/sdk#example-of-booting-and-forwarding-events-if-using-segment.
 
 ---
 
@@ -50,10 +50,12 @@ This guide documents how to integrate Amplitude Guides and Surveys when using Se
 ### Key Principles
 
 1. **Device ID Sync**: Guides & Surveys MUST use the same Device ID as Segment (Segment's `anonymousId`)
-2. **No `init()` needed**: Script loader auto-initializes; only `boot()` is required
+2. **Both `init()` AND `boot()` required**: When using third-party providers like Segment (not Amplitude Browser SDK 2), you must call both methods manually
 3. **Bidirectional Event Flow**:
    - **G&S → Segment**: Survey events forwarded via `integrations` option
    - **Segment → G&S**: Track/Page events forwarded via `forwardEvent()` for triggers
+
+> ⚠️ **Note**: The "no init needed" guidance only applies when using Amplitude Browser SDK 2 with the plugin approach (`amplitude.add(engagementPlugin())`). For Segment and other third-party providers, you MUST call both `init()` and `boot()`.
 
 ---
 
@@ -88,7 +90,7 @@ Add the scripts in this order in your HTML:
 <script src="https://cdn.amplitude.com/script/YOUR_AMPLITUDE_API_KEY.engagement.js"></script>
 ```
 
-> **Important**: The Guides & Surveys script uses the **script loader** format which includes your API key in the URL. This auto-initializes the SDK.
+> **Important**: The script loader makes `window.engagement` available globally. However, when using Segment (or other third-party providers), you must still call `init()` to configure the SDK, then `boot()` to make it functional. See [Amplitude's official documentation](https://amplitude.com/docs/guides-and-surveys/sdk#other-amplitude-sdks-and-third-party-analytics-providers).
 
 ---
 
@@ -135,7 +137,7 @@ async function initializeAnalytics() {
 }
 ```
 
-### Step 3: Boot Guides & Surveys
+### Step 3: Initialize and Boot Guides & Surveys
 
 ```javascript
 async function initializeGuidesAndSurveys(deviceId) {
@@ -144,8 +146,13 @@ async function initializeGuidesAndSurveys(deviceId) {
         return;
     }
     
-    // Boot with Segment's device ID
-    // Note: init() is NOT needed - script loader auto-initializes
+    // Step 1: Initialize the SDK (required for third-party providers like Segment)
+    window.engagement.init(AMPLITUDE_API_KEY, {
+        serverZone: 'US',  // or 'EU' for EU data center
+        // logLevel: LogLevel.Debug  // Uncomment for debugging
+    });
+    
+    // Step 2: Boot with Segment's device ID
     await window.engagement.boot({
         user: {
             device_id: deviceId  // MUST match Segment's anonymousId
@@ -158,7 +165,7 @@ async function initializeGuidesAndSurveys(deviceId) {
         }]
     });
     
-    console.log('Guides & Surveys booted with device ID:', deviceId);
+    console.log('Guides & Surveys initialized and booted with device ID:', deviceId);
 }
 ```
 
@@ -252,7 +259,8 @@ analytics.user().anonymousId()
 The implementation logs helpful messages:
 
 ```
-✅ Guides and Surveys SDK loaded (auto-initialized by script loader)
+✅ Guides and Surveys SDK script loaded
+✅ Guides and Surveys initialized with API key
 ✅ Guides and Surveys booted successfully!
    Device ID: 926295ac-0a2c-4871-bbd3-08eae042b7f0
 🎯 Guides and Surveys ready!
@@ -268,21 +276,26 @@ The implementation logs helpful messages:
 
 ### 1. "Engagement SDK has already been initialized"
 
-**Cause**: Calling `init()` when using script loader
+**Cause**: Calling `init()` multiple times (e.g., on page re-renders or duplicate script loads)
 
-**Solution**: Don't call `init()` - the script loader auto-initializes. Only call `boot()`.
+**Solution**: Add a guard to prevent double initialization:
 
 ```javascript
-// ❌ Don't do this with script loader
-window.engagement.init(API_KEY, options);
+// ✅ Guard against double initialization
+if (!window._engagementInitialized) {
+    window.engagement.init(AMPLITUDE_API_KEY, { serverZone: 'US' });
+    window._engagementInitialized = true;
+}
 
-// ✅ Just call boot()
 await window.engagement.boot({ user: { device_id: deviceId } });
 ```
+
+> **Note**: For Segment and other third-party providers, you MUST call both `init()` and `boot()`. The "skip init" guidance only applies when using Amplitude Browser SDK 2 with `amplitude.add(engagementPlugin())`.
 
 ### 2. Guides/Surveys Not Appearing
 
 **Possible causes:**
+- `init()` not called before `boot()` (required for Segment!)
 - Device ID mismatch between Segment and G&S
 - `boot()` not called
 - No active guides/surveys in Amplitude dashboard
@@ -330,10 +343,12 @@ await window.engagement.boot({
 ## Production Checklist
 
 - [ ] **API Key Security**: Never expose API keys in public repositories
+- [ ] **Initialization Order**: Ensure `init()` is called before `boot()` (required for Segment)
 - [ ] **Device ID Sync**: Verify Segment `anonymousId` matches G&S device ID
 - [ ] **GDPR Compliance**: Only initialize after user consent
 - [ ] **Event Forwarding**: Both directions configured (Segment ↔ G&S)
 - [ ] **Error Handling**: Graceful fallbacks if SDK fails to load
+- [ ] **Double Init Guard**: Prevent `init()` from being called multiple times
 - [ ] **Testing**: Verify guides/surveys appear for target audience
 - [ ] **Debug Mode**: Disable debug logging in production
 
@@ -362,8 +377,14 @@ async function initializeGuidesAndSurveys() {
             return;
         }
         
-        // Boot G&S
+        // Initialize and Boot G&S
         if (window.engagement) {
+            // Step 1: Initialize (REQUIRED for third-party providers like Segment)
+            window.engagement.init(AMPLITUDE_API_KEY, {
+                serverZone: 'US'
+            });
+            
+            // Step 2: Boot with Segment's device ID
             await window.engagement.boot({
                 user: { device_id: deviceId },
                 integrations: [{
@@ -371,7 +392,7 @@ async function initializeGuidesAndSurveys() {
                 }]
             });
             
-            // Set up event forwarding: Segment → G&S
+            // Step 3: Set up event forwarding: Segment → G&S
             analytics.on('track', (event, props) => {
                 window.engagement.forwardEvent({ event_type: event, event_properties: props });
             });
@@ -383,7 +404,7 @@ async function initializeGuidesAndSurveys() {
                 });
             });
             
-            console.log('✅ Guides & Surveys ready!');
+            console.log('✅ Guides & Surveys initialized and ready!');
         }
     });
 }
@@ -408,4 +429,3 @@ document.getElementById('accept-cookies').addEventListener('click', () => {
 
 *Last Updated: January 2026*
 *Author: Giuliano Giannini*
-
