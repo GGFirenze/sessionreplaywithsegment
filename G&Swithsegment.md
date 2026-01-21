@@ -3,7 +3,6 @@
 > **Implementation Guide for Third-Party Analytics Providers**
 
 This guide documents how to integrate Amplitude Guides and Surveys when using Segment as your primary analytics provider (instead of Amplitude Browser SDK directly). This document is a self-reflection on the work delivered on this demo webpage. It is not official documentation. All customers are strongly encouraged to read Amplitude's official documentation here: https://amplitude.com/docs/guides-and-surveys/sdk#example-of-booting-and-forwarding-events-if-using-segment.
-
 ---
 
 ## Table of Contents
@@ -50,12 +49,14 @@ This guide documents how to integrate Amplitude Guides and Surveys when using Se
 ### Key Principles
 
 1. **Device ID Sync**: Guides & Surveys MUST use the same Device ID as Segment (Segment's `anonymousId`)
-2. **Both `init()` AND `boot()` required**: When using third-party providers like Segment (not Amplitude Browser SDK 2), you must call both methods manually
+2. **Initialization depends on installation method**:
+   - **Script loader** (`cdn.amplitude.com/script/API_KEY.engagement.js`): Auto-initializes, only `boot()` needed ✅
+   - **npm/yarn package** (`@amplitude/engagement-browser`): Requires both `init()` AND `boot()`
 3. **Bidirectional Event Flow**:
    - **G&S → Segment**: Survey events forwarded via `integrations` option
    - **Segment → G&S**: Track/Page events forwarded via `forwardEvent()` for triggers
 
-> ⚠️ **Note**: The "no init needed" guidance only applies when using Amplitude Browser SDK 2 with the plugin approach (`amplitude.add(engagementPlugin())`). For Segment and other third-party providers, you MUST call both `init()` and `boot()`.
+> ✅ **Verified**: When using the script loader method with Segment, only `boot()` is required. The script loader auto-initializes the SDK. See [working Pleo demo implementation](#complete-implementation-example) for proof.
 
 ---
 
@@ -90,7 +91,7 @@ Add the scripts in this order in your HTML:
 <script src="https://cdn.amplitude.com/script/YOUR_AMPLITUDE_API_KEY.engagement.js"></script>
 ```
 
-> **Important**: The script loader makes `window.engagement` available globally. However, when using Segment (or other third-party providers), you must still call `init()` to configure the SDK, then `boot()` to make it functional. See [Amplitude's official documentation](https://amplitude.com/docs/guides-and-surveys/sdk#other-amplitude-sdks-and-third-party-analytics-providers).
+> **Important**: The script loader (`cdn.amplitude.com/script/API_KEY.engagement.js`) **auto-initializes** the SDK when loaded. For Segment integration, you only need to call `boot()` - no explicit `init()` required. This has been verified in production with the Pleo demo.
 
 ---
 
@@ -137,7 +138,11 @@ async function initializeAnalytics() {
 }
 ```
 
-### Step 3: Initialize and Boot Guides & Surveys
+### Step 3: Boot Guides & Surveys
+
+#### Option A: Script Loader Method (Recommended)
+
+When using the script loader, the SDK auto-initializes. You only need to call `boot()`:
 
 ```javascript
 async function initializeGuidesAndSurveys(deviceId) {
@@ -146,10 +151,37 @@ async function initializeGuidesAndSurveys(deviceId) {
         return;
     }
     
-    // Step 1: Initialize the SDK (required for third-party providers like Segment)
+    // Script loader auto-initializes - just call boot()
+    await window.engagement.boot({
+        user: {
+            device_id: deviceId  // MUST match Segment's anonymousId
+        },
+        // Forward G&S events to Segment
+        integrations: [{
+            track: (event) => {
+                analytics.track(event.event_type, event.event_properties);
+            }
+        }]
+    });
+    
+    console.log('Guides & Surveys booted with device ID:', deviceId);
+}
+```
+
+#### Option B: npm/yarn Package Method
+
+If using the npm package (`@amplitude/engagement-browser`), you must call both `init()` and `boot()`:
+
+```javascript
+async function initializeGuidesAndSurveys(deviceId) {
+    if (!window.engagement) {
+        console.error('Guides & Surveys SDK not loaded');
+        return;
+    }
+    
+    // Step 1: Initialize (required for npm package method)
     window.engagement.init(AMPLITUDE_API_KEY, {
         serverZone: 'US',  // or 'EU' for EU data center
-        // logLevel: LogLevel.Debug  // Uncomment for debugging
     });
     
     // Step 2: Boot with Segment's device ID
@@ -157,7 +189,6 @@ async function initializeGuidesAndSurveys(deviceId) {
         user: {
             device_id: deviceId  // MUST match Segment's anonymousId
         },
-        // Forward G&S events to Segment
         integrations: [{
             track: (event) => {
                 analytics.track(event.event_type, event.event_properties);
@@ -276,12 +307,14 @@ The implementation logs helpful messages:
 
 ### 1. "Engagement SDK has already been initialized"
 
-**Cause**: Calling `init()` multiple times (e.g., on page re-renders or duplicate script loads)
+**Cause**: Calling `init()` when using the script loader (which auto-initializes), or calling `init()` multiple times with npm package
 
-**Solution**: Add a guard to prevent double initialization:
+**Solution**: 
+- **Script loader**: Don't call `init()` at all - just call `boot()`
+- **npm package**: Add a guard to prevent double initialization:
 
 ```javascript
-// ✅ Guard against double initialization
+// For npm package method only - add guard
 if (!window._engagementInitialized) {
     window.engagement.init(AMPLITUDE_API_KEY, { serverZone: 'US' });
     window._engagementInitialized = true;
@@ -290,16 +323,16 @@ if (!window._engagementInitialized) {
 await window.engagement.boot({ user: { device_id: deviceId } });
 ```
 
-> **Note**: For Segment and other third-party providers, you MUST call both `init()` and `boot()`. The "skip init" guidance only applies when using Amplitude Browser SDK 2 with `amplitude.add(engagementPlugin())`.
+> **Note**: When using the script loader (`cdn.amplitude.com/script/API_KEY.engagement.js`), the SDK auto-initializes. Only call `boot()` - no `init()` needed!
 
 ### 2. Guides/Surveys Not Appearing
 
 **Possible causes:**
-- `init()` not called before `boot()` (required for Segment!)
 - Device ID mismatch between Segment and G&S
 - `boot()` not called
 - No active guides/surveys in Amplitude dashboard
 - Targeting rules not met
+- Script loader not loaded (check network tab)
 
 **Debug steps:**
 1. Check `window.engagement._debugStatus()`
@@ -343,26 +376,26 @@ await window.engagement.boot({
 ## Production Checklist
 
 - [ ] **API Key Security**: Never expose API keys in public repositories
-- [ ] **Initialization Order**: Ensure `init()` is called before `boot()` (required for Segment)
+- [ ] **Script Loader**: Use `cdn.amplitude.com/script/API_KEY.engagement.js` (auto-initializes)
 - [ ] **Device ID Sync**: Verify Segment `anonymousId` matches G&S device ID
-- [ ] **GDPR Compliance**: Only initialize after user consent
+- [ ] **GDPR Compliance**: Only load SDKs after user consent
 - [ ] **Event Forwarding**: Both directions configured (Segment ↔ G&S)
 - [ ] **Error Handling**: Graceful fallbacks if SDK fails to load
-- [ ] **Double Init Guard**: Prevent `init()` from being called multiple times
 - [ ] **Testing**: Verify guides/surveys appear for target audience
+- [ ] **Debug Status**: Run `window.engagement._debugStatus()` to verify setup
 - [ ] **Debug Mode**: Disable debug logging in production
 
 ---
 
 ## Complete Implementation Example
 
+This example uses the **script loader method** (recommended), which auto-initializes:
+
 ```html
 <!-- SDK Scripts -->
 <script src="https://cdn.amplitude.com/script/YOUR_API_KEY.engagement.js"></script>
 
 <script>
-const AMPLITUDE_API_KEY = 'YOUR_API_KEY';
-
 async function initializeGuidesAndSurveys() {
     // Wait for Segment to be ready
     analytics.ready(async function() {
@@ -377,14 +410,9 @@ async function initializeGuidesAndSurveys() {
             return;
         }
         
-        // Initialize and Boot G&S
+        // Boot G&S (script loader auto-initializes - no init() needed!)
         if (window.engagement) {
-            // Step 1: Initialize (REQUIRED for third-party providers like Segment)
-            window.engagement.init(AMPLITUDE_API_KEY, {
-                serverZone: 'US'
-            });
-            
-            // Step 2: Boot with Segment's device ID
+            // Boot with Segment's device ID
             await window.engagement.boot({
                 user: { device_id: deviceId },
                 integrations: [{
@@ -392,7 +420,9 @@ async function initializeGuidesAndSurveys() {
                 }]
             });
             
-            // Step 3: Set up event forwarding: Segment → G&S
+            console.log('✅ Guides and Surveys booted with device ID:', deviceId);
+            
+            // Set up event forwarding: Segment → G&S (for event-based triggers)
             analytics.on('track', (event, props) => {
                 window.engagement.forwardEvent({ event_type: event, event_properties: props });
             });
@@ -404,7 +434,9 @@ async function initializeGuidesAndSurveys() {
                 });
             });
             
-            console.log('✅ Guides & Surveys initialized and ready!');
+            console.log('🎯 Guides & Surveys ready!');
+            console.log('   - G&S events → Segment (via integrations)');
+            console.log('   - Segment events → G&S (via forwardEvent)');
         }
     });
 }
@@ -416,6 +448,8 @@ document.getElementById('accept-cookies').addEventListener('click', () => {
 });
 </script>
 ```
+
+> ✅ **Verified**: This pattern has been tested and confirmed working in the Pleo demo with surveys appearing correctly and bidirectional event flow operational.
 
 ---
 
